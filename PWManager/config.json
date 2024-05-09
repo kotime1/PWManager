@@ -1,0 +1,5 @@
+{
+    "SECRET_KEY": "44faefe381c97095b9cb8dda135a20ff",
+    "SQLALCHEMY_DATABASE_URI": "sqlite:///PWManager/database.db",
+    "SQLALCHEMY_TRACK_MODIFICATIONS": false
+}

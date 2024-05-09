@@ -1,0 +1,47 @@
+```{mermaid}
+erDiagram
+    User ||--o{ Credential : "has"
+    User ||--o{ Group : "has"
+    User ||--o{ AuditLog : "logged"
+    Group ||--o{ Credential : "contains"
+    Credential ||--o{ AuditLog : "logged"
+
+    User {
+        int UserId PK "Primary Key"
+        varchar Username "Unique"
+        varchar Email "Unique"
+        char MasterPasswordHash "Hashed"
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    Credential {
+        int CredentialId PK "Primary Key"
+        int UserId FK "Foreign Key"
+        int GroupId FK "Optional Foreign Key"
+        varchar Title
+        varchar Username
+        varbinary Password "Encrypted"
+        varchar URL
+        text Notes
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    Group {
+        int GroupId PK "Primary Key"
+        int UserId FK "Foreign Key"
+        varchar GroupName
+        text Description
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    AuditLog {
+        int LogId PK "Primary Key"
+        int UserId FK "Foreign Key"
+        int CredentialId FK "Optional Foreign Key"
+        varchar Action
+        datetime Timestamp
+    }
+```

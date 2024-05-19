@@ -3,11 +3,9 @@ from app import app, db
 from models import User, Post
 from password import verify_password_requirements, hash_pw, check_password
 
-logged_in = False
-
 @app.route('/', methods=['GET', 'POST'])
 def start_app():
-    if not logged_in:
+    if not session.get('logged_in', False):
         return redirect(url_for('login'))
     return redirect(url_for('dashboard'))
 
@@ -25,7 +23,7 @@ def register():
             return redirect(url_for('register'))
 
         if User.query.filter((User.username == username) | (User.email == email)).first():
-            flash('Username or Email already exists', 'error')
+            flash('Username or Email already in use', 'error')
             return redirect(url_for('register'))
         
         verified, msg = verify_password_requirements(password1)
@@ -40,7 +38,7 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             flash("Registration successful", 'message')
-            return redirect(url_for('login'))  # Assuming you have a login route
+            return redirect(url_for('login'))
         except Exception as e:
             db.session.rollback()
             flash(str(e), 'error')
@@ -51,22 +49,48 @@ def register():
 # Login with either username or email
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        identifier = request.form['identifier']
-        password = request.form['password']
-        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
+    if not session.get('logged_in', False):
+        if request.method == 'POST':
+            identifier = request.form['identifier']
+            password = request.form['password']
+            user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
 
-        if user and check_password(password, user.password_hash):
-            session['logged_in'] = True
-            session['user_id'] = user.id
-            return redirect('/dashboard')  # Assuming there is a dashboard endpoint
-        else:
-            flash('Invalid Credentials', 'error')  # Adding an error message
+            if user and check_password(password, user.password_hash):
+                session['logged_in'] = True
+                session['user_id'] = user.id
+                return redirect('/dashboard')
+            else:
+                flash('Invalid Credentials', 'error')  # Adding an error message
 
     return render_template('login.html')
 
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('dashboard.html')
+
+@app.route('/create_user', methods=['GET', 'POST'])
+def create_user():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        # Handle user creation logic here
+        pass
+    return render_template('create_user.html')
+
+@app.route('/search_user', methods=['GET', 'POST'])
+def search_user():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        # Handle user search logic here
+        pass
+    return render_template('search_user.html')
+
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)  # Remove 'logged_in' from session
-    session.pop('user_id', None)    # Optionally clear other session info
+    session.pop('logged_in', None)
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'message')
     return redirect(url_for('login'))
